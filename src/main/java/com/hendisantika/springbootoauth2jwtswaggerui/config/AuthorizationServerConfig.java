@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 import java.util.logging.Logger;
 
@@ -69,4 +71,21 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .secret("secret");
 
     }
+
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() {
+
+        LOGGER.info("Initializing JWT with public key: " + publicKey);
+
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setSigningKey(privateKey);
+
+        return converter;
+    }
+
+    @Bean
+    public JwtTokenStore tokenStore() {
+        return new JwtTokenStore(accessTokenConverter());
+    }
+
 }
