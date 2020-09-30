@@ -26,7 +26,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @ComponentScan("com.hendisantika")
-@EnableJpaRepositories("com.hendisantika.repository")
+@EnableJpaRepositories("com.hendisantika.springbootoauth2jwtswaggerui.repository")
 public class PersistentContext {
     @Bean
     public DataSource dataSource() {
@@ -48,7 +48,7 @@ public class PersistentContext {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setDataSource(dataSource);
         bean.setJpaVendorAdapter(jpaVendorAdapter);
-        bean.setPackagesToScan("com.authentication");
+        bean.setPackagesToScan("com.hendisantika.springbootoauth2jwtswaggerui");
         return bean;
     }
 

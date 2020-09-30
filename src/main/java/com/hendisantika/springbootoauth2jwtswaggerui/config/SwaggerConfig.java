@@ -41,7 +41,7 @@ import static com.google.common.collect.Lists.newArrayList;
  */
 @Configuration
 @EnableSwagger2
-@ComponentScan(basePackages = "com.hendisantika.controller")
+@ComponentScan(basePackages = "com.hendisantika.springbootoauth2jwtswaggerui.controller")
 public class SwaggerConfig {
 
 
