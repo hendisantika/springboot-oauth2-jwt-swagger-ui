@@ -20,8 +20,6 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
-import java.util.logging.Logger;
-
 /**
  * Created by IntelliJ IDEA.
  * Project : spring-boot-oauth2-jwt-swagger-ui
@@ -34,8 +32,6 @@ import java.util.logging.Logger;
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
-
-    private static final Logger LOGGER = Logger.getLogger(AuthorizationServerConfig.class);
 
     @Autowired
     @Qualifier("userDetailsService")
