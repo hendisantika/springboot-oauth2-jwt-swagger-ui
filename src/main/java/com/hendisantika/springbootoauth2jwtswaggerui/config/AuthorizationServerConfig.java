@@ -1,5 +1,6 @@
 package com.hendisantika.springbootoauth2jwtswaggerui.config;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
  */
 @Configuration
 @EnableAuthorizationServer
+@Log4j2
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
@@ -75,7 +77,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
 
-        LOGGER.info("Initializing JWT with public key: " + publicKey);
+        log.info("Initializing JWT with public key: " + publicKey);
 
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setSigningKey(privateKey);
@@ -115,6 +117,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .tokenStore(tokenStore())
                 .tokenServices(tokenServices())
                 .accessTokenConverter(accessTokenConverter());
-    }‘
+    }
 
 }
