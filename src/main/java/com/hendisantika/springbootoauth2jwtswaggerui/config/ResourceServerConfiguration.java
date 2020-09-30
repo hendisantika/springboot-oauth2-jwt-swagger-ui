@@ -53,22 +53,23 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     public void configure(ResourceServerSecurityConfigurer resources) {
         resources
                 .resourceId(resourceId)
-                .tokenServices(tokenServices())
-                .tokenStore(tokenStore());
+                .tokenServices(tokenServices2())
+                .tokenStore(tokenStore2());
     }
 
     @Bean
     @Primary
-    public DefaultTokenServices tokenServices() {
+    public DefaultTokenServices tokenServices2() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore(tokenStore());
+        defaultTokenServices.setTokenStore(tokenStore2());
         defaultTokenServices.setSupportRefreshToken(true);
-        defaultTokenServices.setTokenEnhancer(accessTokenConverter());
+        defaultTokenServices.setTokenEnhancer(accessTokenConverter2());
         return defaultTokenServices;
     }
 
+
     @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
+    public JwtAccessTokenConverter accessTokenConverter2() {
 
         log.info("Initializing JWT with public key: " + publicKey);
 
@@ -79,7 +80,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     }
 
     @Bean
-    public JwtTokenStore tokenStore() {
-        return new JwtTokenStore(accessTokenConverter());
+    public JwtTokenStore tokenStore2() {
+        return new JwtTokenStore(accessTokenConverter2());
     }
 }
