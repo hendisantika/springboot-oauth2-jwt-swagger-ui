@@ -88,4 +88,36 @@ public class UserTokenSessionServiceImpl implements UserTokenSessionService {
 
     }
 
+    @Override
+    public UserTokenSession saveUserTokenSessionMapping(UserTokenSession userTokenSession) {
+
+        UserTokenSession userTokenSessionFromDB =
+                userTokenSessionRepository.findOneByUsername(userTokenSession.getUsername());
+
+        /**
+         * 1. If User is making the login call again with the same session-id and token. Then delete the old mapping
+         * and return the new inserted mapping.
+         * 2. If same user is making login call with the new token or session-id. Then delete the old mapping and
+         * return the new inserted mapping
+         */
+        if (Objects.nonNull(userTokenSessionFromDB)) {
+
+            if (userTokenSessionFromDB.equals(userTokenSession)) {
+                log.info("User " + userTokenSession.getUsername() + " making login call again with same token and " +
+                        "session-id.");
+
+            } else if (!userTokenSessionFromDB.getToken().equals(userTokenSession.getToken())) {
+                log.info("User " + userTokenSession.getUsername() + " making login call with new token");
+
+            } else {
+                log.info("User " + userTokenSession.getUsername() + " making login call with different session-id");
+
+            }
+            log.info("So, Deleting older mapping from tbl_user_token_session." + userTokenSessionFromDB);
+            userTokenSessionRepository.delete(userTokenSessionFromDB);
+
+        }
+
+        return userTokenSessionRepository.save(userTokenSession);
+    }
 }
