@@ -115,4 +115,4 @@ openssl pkey -in private.pem -pubout -out public.pem
 ## CI
 
 GitHub Actions (`.github/workflows/maven.yml`) builds and tests the project with Temurin JDK 25 on every push
-and pull request to `master`.
+and pull request to `main`.
