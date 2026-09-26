@@ -1,15 +1,15 @@
 package com.hendisantika.springbootoauth2jwtswaggerui.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -29,33 +29,33 @@ public class UserTokenSession {
     static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
-    @ApiModelProperty(notes = "The database generated user, token and session mapping ID.")
+    @Schema(description = "The database generated user, token and session mapping ID.")
     private Long id;
 
     @Column(name = "username", nullable = false, unique = true)
-    @ApiModelProperty(notes = "user name.")
+    @Schema(description = "user name.")
     private String username;
 
-    @Column(name = "token", nullable = false, unique = true, length = 500)
-    @ApiModelProperty(notes = "Authorization token.")
+    @Column(name = "token", nullable = false, unique = true, length = 2000)
+    @Schema(description = "Authorization token.")
     private String token;
 
     @Column(name = "session_id", nullable = false, unique = true)
-    @ApiModelProperty(notes = "Session-id received in request header.")
+    @Schema(description = "Session-id received in request header.")
     private String sessionId;
 
     @Column(name = "expiry_time", nullable = false)
-    @ApiModelProperty(notes = "Authorization token expiry time.")
+    @Schema(description = "Authorization token expiry time.")
     private Long expiryTime;
 
     @Column(name = "created_time", insertable = true, updatable = false)
-    @ApiModelProperty(notes = "The database generated user, token and session mapping created time.")
+    @Schema(description = "The database generated user, token and session mapping created time.")
     private LocalDateTime createdTime;
 
     @Column(name = "updated_time", insertable = false, updatable = true)
-    @ApiModelProperty(notes = "The database generated user, token and session mapping updated time.")
+    @Schema(description = "The database generated user, token and session mapping updated time.")
     private LocalDateTime updatedTime;
 
     public UserTokenSession() {

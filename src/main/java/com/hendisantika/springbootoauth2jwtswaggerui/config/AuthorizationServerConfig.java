@@ -1,25 +1,29 @@
 package com.hendisantika.springbootoauth2jwtswaggerui.config;
 
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.core.io.Resource;
+import org.springframework.security.converter.RsaKeyConverters;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,94 +33,47 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
  * Telegram : @hendisantika34
  * Date: 30/09/20
  * Time: 07.07
+ * <p>
+ * Signs (private key) and verifies (public key) the RS256 JWT access tokens issued by {@code /oauth/token}.
  */
 @Configuration
-@EnableAuthorizationServer
 @Log4j2
-public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationServerConfig {
 
-    @Autowired
-    @Qualifier("userDetailsService")
-    private UserDetailsService userDetailsService;
+    @Value("${config.oauth2.issuer}")
+    private String issuer;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Value("${config.oauth2.tokenTimeout}")
-    private int expiration;
-
-    @Value("${config.oauth2.privateKey}")
-    private String privateKey;
-
-    @Value("${config.oauth2.publicKey}")
-    private String publicKey;
-
-    @Autowired
-    private ClientDetailsService clientDetailsService;
+    @Value("${config.oauth2.resource.id}")
+    private String resourceId;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients
-                .inMemory()
-                .withClient("client")
-                .authorizedGrantTypes("client_credentials", "password", "refresh_token", "authorization_code")
-                .scopes("read", "write")
-                .resourceIds("oauth2-resource")
-                .accessTokenValiditySeconds(expiration)
-                .refreshTokenValiditySeconds(expiration)
-                .secret("secret");
-
+    public RSAPublicKey jwtPublicKey(@Value("${config.oauth2.publicKey}") Resource publicKey) throws IOException {
+        log.info("Initializing JWT with public key: {}", publicKey);
+        try (InputStream in = publicKey.getInputStream()) {
+            return RsaKeyConverters.x509().convert(in);
+        }
     }
 
     @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
-
-        log.info("Initializing JWT with public key: " + publicKey);
-
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey(privateKey);
-
-        return converter;
+    public RSAPrivateKey jwtPrivateKey(@Value("${config.oauth2.privateKey}") Resource privateKey) throws IOException {
+        try (InputStream in = privateKey.getInputStream()) {
+            return RsaKeyConverters.pkcs8().convert(in);
+        }
     }
 
     @Bean
-    public JwtTokenStore tokenStore() {
-        return new JwtTokenStore(accessTokenConverter());
+    public JwtEncoder jwtEncoder(RSAPublicKey jwtPublicKey, RSAPrivateKey jwtPrivateKey) {
+        RSAKey rsaKey = new RSAKey.Builder(jwtPublicKey).privateKey(jwtPrivateKey).build();
+        return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
     }
 
     @Bean
-    @Primary
-    public DefaultTokenServices tokenServices() {
-        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore(tokenStore());
-        defaultTokenServices.setClientDetailsService(clientDetailsService);
-        defaultTokenServices.setSupportRefreshToken(true);
-        defaultTokenServices.setTokenEnhancer(accessTokenConverter());
-        return defaultTokenServices;
+    public JwtDecoder jwtDecoder(RSAPublicKey jwtPublicKey) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(jwtPublicKey).build();
+        OAuth2TokenValidator<Jwt> audience =
+                new JwtClaimValidator<List<String>>("aud", aud -> aud != null && aud.contains(resourceId));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(issuer), audience));
+        return decoder;
     }
-
-    /**
-     * Defines the authorization and token endpoints and the token services
-     *
-     * @param endpoints
-     * @throws Exception
-     */
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-
-        endpoints
-                .authenticationManager(authenticationManager)
-                .userDetailsService(userDetailsService)
-                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST)
-                .tokenStore(tokenStore())
-                .tokenServices(tokenServices())
-                .accessTokenConverter(accessTokenConverter());
-    }
-
 }

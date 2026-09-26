@@ -1,12 +1,13 @@
 package com.hendisantika.springbootoauth2jwtswaggerui.config;
 
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Created by IntelliJ IDEA.
@@ -18,14 +19,21 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  * Time: 07.17
  */
 @Configuration
-@EnableWebSecurity(debug = true)
-//@Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
-@Order(SecurityProperties.BASIC_AUTH_ORDER)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Authenticates the resource owner (username/password) for the OAuth2 password grant.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService,
+                                                       PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
     }
 }
